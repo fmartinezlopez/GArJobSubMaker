@@ -1,4 +1,4 @@
-GArAnaPy
+GArJobSubMaker
 ========================
 
-This is a simple Python module to analyze data from ND-GAr.
+Python tool to generate ND-GAr jobsub commands
