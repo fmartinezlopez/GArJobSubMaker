@@ -12,9 +12,11 @@ def cli(config_path: str) -> None:
 
     jobsub.create_tar_dir()
     jobsub.create_setup_scripts()
-    #jobsub.tar_and_delete()
+    jobsub.add_other_files()
+    jobsub.tar_and_delete()
 
     jobsub.create_run_script()
+    jobsub.create_jobsub_script()
 
 if __name__ == "__main__":
 
