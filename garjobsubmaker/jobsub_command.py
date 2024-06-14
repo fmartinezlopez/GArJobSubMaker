@@ -26,7 +26,7 @@ class JobSubScript:
 
             jobsub_command.append('--tar_file_name=dropbox://{}'.format(configuration.tar_path))
 
-            jobsub_command.append('''-l '+SingularityImage=\"/cvmfs/singularity.opensciencegrid.org/fermilab/fnal-dev-sl7:latest\"''') # triple quoted :S
+            jobsub_command.append('''-l '+SingularityImage=\"/cvmfs/singularity.opensciencegrid.org/fermilab/fnal-dev-sl7:latest\"' ''') # triple quoted :S
 
             jobsub_command.append("--append_condor_requirements='(TARGET.HAS_Singularity==true&&TARGET.HAS_CVMFS_dune_opensciencegrid_org==true&&TARGET.HAS_CVMFS_larsoft_opensciencegrid_org==true&&TARGET.CVMFS_dune_opensciencegrid_org_REVISION>=1105&&TARGET.HAS_CVMFS_fifeuser1_opensciencegrid_org==true&&TARGET.HAS_CVMFS_fifeuser2_opensciencegrid_org==true&&TARGET.HAS_CVMFS_fifeuser3_opensciencegrid_org==true&&TARGET.HAS_CVMFS_fifeuser4_opensciencegrid_org==true)'")
 
