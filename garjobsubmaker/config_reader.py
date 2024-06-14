@@ -1,75 +1,121 @@
+import os
+from pathlib import Path
 import json
+import collections
 
-class Configuration:
-    def __init__(self) -> None:
-        pass
+class ConfigsDict(collections.UserDict):
+    def __init__(self, inp=None):
+        if isinstance(inp, collections.UserDict):
+            super(ConfigsDict,self).__init__(inp)
+        else:
+            super(ConfigsDict,self).__init__()
+            if isinstance(inp, (collections.Mapping, collections.Iterable)): 
+                si = self.__setitem__
+                for k,v in inp:
+                    si(k,v)
 
-class GlobalConfiguration(Configuration):
-    def __init__(self, n_events, gevgen, edepsim, garsoft, outpath, genie_config, edep_config) -> None:
-        self.n_events = n_events        # number of events to produce
-        self.gevgen   = gevgen          # use gevgen_fnal for the GENIE step?
-        self.edepsim  = edepsim         # use edep-sim for the Geant4 step?
-        self.garsoft  = garsoft
-        self.outpath  = outpath         # path for output
+    def __setitem__(self, k, v):
+        try:
+            self.__getitem__(k)
+            raise ValueError("duplicate key '{0}' found".format(k))
+        except KeyError:
+            super(ConfigsDict,self).__setitem__(k,v)
+
+
+class Configuration():
+    def __init__(self, n_events, n_jobs, mail, memory, disk, lifetime, cpu, resources, enable_gevgen, enable_edepsim, enable_garsoft, outpath, defaults) -> None:
+
+        self.n_events  = n_events           # number of events to produce
+        self.n_jobs    = n_jobs             # number of jobs to divide
+        self.mail      = mail
+        self.memory    = memory
+        self.disk      = disk
+        self.lifetime  = lifetime
+        self.cpu       = cpu
+        self.resources = resources
+        self.gevgen    = enable_gevgen      # use gevgen_fnal for the GENIE step?
+        self.edepsim   = enable_edepsim     # use edep-sim for the Geant4 step?
+        self.garsoft   = enable_garsoft
+        self.outpath   = outpath            # path for output
+
+        self.defaults = Path(defaults)
 
         if not self.outpath.startswith("/pnfs/dune/scratch"):
             raise ValueError("Are you sure you want to put your files in {}?\nCheck this please...".format(self.outpath))
 
-        if self.gevgen:
-            self.genie_config = ConfigParser(_json=genie_config).decode_config()
+    def add_genie_config(self, json):
+        self.genie_config = GENIEConfiguration(**json)
 
-        if self.gevgen:
-            self.edep_config = ConfigParser(_json=edep_config).decode_config()
+    def add_edep_config(self, json):
+        self.edep_config = EDEPConfiguration(**json)
 
     def add_tar_dir_name(self, tar_dir_name):
         self.tar_dir_name = tar_dir_name
 
-class GENIEConfiguration(Configuration):
-    def __init__(self, copy_flux, genie, genie_xsec, genie_phyopt, geant4, ND_Production, sam_web_client) -> None:
+    def add_tar_path(self, tar_path):
+        self.tar_path = tar_path
 
-        self.copy_flux = copy_flux
+    def add_run_script_path(self, run_script_path):
+        self.run_script_path = run_script_path
+
+class GENIEConfiguration():
+    def __init__(self, genie, genie_xsec, genie_phyopt, geant4, ND_Production, sam_web_client) -> None:
         
-        self.genie          = ConfigParser(_json=genie).decode_config()
-        self.genie_xsec     = ConfigParser(_json=genie_xsec).decode_config()
-        self.genie_phyopt   = ConfigParser(_json=genie_phyopt).decode_config()
-        self.geant4         = ConfigParser(_json=geant4).decode_config()
-        self.ND_Production  = ConfigParser(_json=ND_Production).decode_config()
-        self.sam_web_client = ConfigParser(_json=sam_web_client).decode_config()
+        self.genie          = ProductConfiguration(**genie)
+        self.genie_xsec     = ProductConfiguration(**genie_xsec)
+        self.genie_phyopt   = ProductConfiguration(**genie_phyopt)
+        self.geant4         = ProductConfiguration(**geant4)
+        self.ND_Production  = ProductConfiguration(**ND_Production)
+        self.sam_web_client = ProductConfiguration(**sam_web_client)
 
-class EDEPConfiguration(Configuration):
+class EDEPConfiguration():
     def __init__(self, edepsim) -> None:
 
-        self.edepsim = ConfigParser(_json=edepsim).decode_config()
+        self.edepsim = ProductConfiguration(**edepsim)
 
-class ProductConfiguration(Configuration):
+class ProductConfiguration():
     def __init__(self, version, qualifier) -> None:
         self.version = version
         self.qualifier = qualifier
 
 class ConfigParser:
-    def __init__(self, _path=None, _json=None) -> None:
+    def __init__(self, config_dir) -> None:
 
-        if _json is not None:
+        self.config_dir = config_dir
+
+        self.configs_dict = ConfigsDict()
+        self.check_and_book()
+
+        """ if _json is not None:
             self.config_json = _json
         elif _path is not None:
             with open(_path, 'r') as config_file:
                 self.config_json = json.load(config_file)
         else:
-            raise ValueError("You need to provide something!")
+            raise ValueError("You need to provide something!") """
 
-    def decode_config(self) -> Configuration:
+    def check_and_book(self):
 
-        if '__type__' in self.config_json and self.config_json['__type__'] == 'GlobalConfiguration':
-            del self.config_json['__type__']
-            return GlobalConfiguration(**self.config_json)
-        elif '__type__' in self.config_json and self.config_json['__type__'] == 'GENIEConfiguration':
-            del self.config_json['__type__']
-            return GENIEConfiguration(**self.config_json)
-        elif '__type__' in self.config_json and self.config_json['__type__'] == 'EDEPConfiguration':
-            del self.config_json['__type__']
-            return EDEPConfiguration(**self.config_json)
-        elif '__type__' in self.config_json and self.config_json['__type__'] == 'ProductConfiguration':
-            del self.config_json['__type__']
-            return ProductConfiguration(**self.config_json)
-        else:
-            raise ValueError("JSON file doesn't contain an instance of class Configuration")
+        for file in os.scandir(self.config_dir):
+            with open(file, 'r') as config_file:
+                config_json = json.load(config_file)
+                if '__type__' in config_json:
+                    config_type = config_json['__type__']
+                    del config_json['__type__']
+                    self.configs_dict[config_type] = config_json
+
+        if 'GlobalConfiguration' not in self.configs_dict:
+            raise ValueError("Configuration directory doesn't contain a GlobalConfiguration!")
+
+
+    def decode_configs(self) -> Configuration:
+
+        config = Configuration(**self.configs_dict['GlobalConfiguration'])
+
+        if 'GENIEConfiguration' in self.configs_dict:
+            config.add_genie_config(self.configs_dict['GENIEConfiguration'])
+
+        if 'EDEPConfiguration' in self.configs_dict:
+            config.add_edep_config(self.configs_dict['EDEPConfiguration'])
+
+        return config
