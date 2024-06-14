@@ -1,6 +1,7 @@
 build/
 dist/
 garjobsubmaker.egg-info/
+flux_files/
 jobsubdir/
 jobsub.tar.gz
 launch_job.sh
