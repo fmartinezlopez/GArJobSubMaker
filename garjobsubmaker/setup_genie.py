@@ -1,7 +1,5 @@
 import os
 
-#!/bin/bash
-
 class GENIESetup:
     def __init__(self, script_name='./setup_genie_grid.sh') -> None:
         self.script_name = script_name
