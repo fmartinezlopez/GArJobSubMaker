@@ -32,10 +32,11 @@ class JobSubmission:
             shutil.rmtree(self.tar_dir)
         os.mkdir(self.tar_dir)
 
-    def tar_and_delete(self) -> None:
+    def tar_and_delete(self, keep_dir) -> None:
 
         os.system("tar czf {} {}".format(self.tar, self.tar_dir)) # tar directory
-        shutil.rmtree(self.tar_dir)
+        if not keep_dir:
+            shutil.rmtree(self.tar_dir)
 
     def create_setup_scripts(self):
 
