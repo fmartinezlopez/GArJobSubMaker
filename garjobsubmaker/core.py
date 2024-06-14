@@ -1,27 +1,30 @@
 import os
 import shutil
+from pathlib import Path
 
 from garjobsubmaker import config_reader
+
 from garjobsubmaker import run_script
+
 from garjobsubmaker import setup_genie
 from garjobsubmaker import setup_edep
 
-def copy_and_check_fluxes(config):
-    os.system('setup ND_Production   {}       -q {} \n'.format(config.genie_config.ND_Production.version, config.genie_config.ND_Production.qualifier))
-    os.system('${ND_PRODUCTION_DIR}/bin/copy_dune_flux --top /cvmfs/dune.osgstorage.org/pnfs/fnal.gov/usr/dune/persistent/stash/Flux/g4lbne/v3r5p4/QGSP_BERT/OptimizedEngineeredNov2017 --flavor neutrino --maxmb=100')
-    os.system('ls flux_files/ -alh')
+from garjobsubmaker import jobsub_command
 
 class JobSubmission:
     def __init__(self, path_to_config, path_to_tar_dir="./jobsubdir", path_to_tar="jobsub.tar.gz") -> None:
 
-        self.pwd = os.path.dirname(os.path.realpath(__file__))
+        parser = config_reader.ConfigParser(path_to_config)
+        self.config = parser.decode_configs()
 
-        parser = config_reader.ConfigParser(_path=path_to_config)
-        self.config = parser.decode_config()
-        self.config.add_tar_dir_name(path_to_tar_dir[2:])
+        path_to_tar_dir = Path(path_to_tar_dir)
+        path_to_tar = Path(path_to_tar)
 
         self.tar_dir = path_to_tar_dir
         self.tar     = path_to_tar
+
+        self.config.add_tar_dir_name(path_to_tar_dir)
+        self.config.add_tar_path(path_to_tar.absolute())
 
     def create_tar_dir(self) -> None:
 
@@ -36,18 +39,30 @@ class JobSubmission:
 
     def create_setup_scripts(self):
 
-        shutil.copy(self.pwd+"/../templates/setup_global_template.sh", self.tar_dir+"/setup_grid_global.sh")
+        shutil.copy(self.config.defaults / "templates/setup_global_template.sh", self.tar_dir / "setup_grid_global.sh")
 
         if self.config.gevgen:
-            setup_genie.GENIESetup(script_name=self.tar_dir+"/setup_grid_genie.sh").write(self.config)
+            setup_genie.GENIESetup(script_name=self.tar_dir / "setup_grid_genie.sh").write(self.config)
 
         if self.config.edepsim:
-            setup_edep.EDEPSetup(script_name=self.tar_dir+"/setup_grid_edep.sh").write(self.config)
+            setup_edep.EDEPSetup(script_name=self.tar_dir / "setup_grid_edep.sh").write(self.config)
 
     def add_other_files(self):
-        if self.config.gevgen & self.config.genie_config.copy_flux:
-            copy_and_check_fluxes(self.config)
-            shutil.copy(self.pwd+"/flux_files", self.tar_dir+"/flux_files")
+        if self.config.gevgen:
+            os.mkdir(self.tar_dir / "flux_files")
+            for file in os.listdir(self.config.defaults / "flux_files"):
+                shutil.copy(self.config.defaults / "flux_files" / file, self.tar_dir / "flux_files" / file, follow_symlinks=False)
+
+            os.mkdir(self.tar_dir / "geometries")
+            for file in os.listdir(self.config.defaults / "geometries"):
+                shutil.copy(self.config.defaults / "geometries" / file, self.tar_dir / "geometries" / file, follow_symlinks=False)
 
     def create_run_script(self):
-        run_script.RunScript().write(self.config)
+        script = run_script.RunScript()
+        script.write(self.config)
+
+        run_script_path = Path(script.script_name)
+        self.config.add_run_script_path(run_script_path.absolute())
+
+    def create_jobsub_script(self):
+        jobsub_command.JobSubScript().write(self.config)
