@@ -9,7 +9,6 @@ class GENIESetup:
         with open(self.script_name, 'w') as script:
             script.write('#!/bin/bash \n\n')
 
-            script.write('setup ifdhc                          \n')
             script.write('setup genie           {}       -q {} \n'.format(configuration.genie_config.genie.version,         configuration.genie_config.genie.qualifier))
             script.write('setup genie_xsec      {}       -q {} \n'.format(configuration.genie_config.genie_xsec.version,    configuration.genie_config.genie_xsec.qualifier))
             script.write('setup genie_phyopt    {}       -q {} \n'.format(configuration.genie_config.genie_phyopt.version,  configuration.genie_config.genie_phyopt.qualifier))
