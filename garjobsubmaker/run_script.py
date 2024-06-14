@@ -64,6 +64,7 @@ class RunScript:
                 gevgen_command.append('--message-thresholds ${ND_PRODUCTION_CONFIG}/Messenger_production.xml')
                 gevgen_command.append('--event-record-print-level 0')
                 gevgen_command.append('--cross-sections $GENIEXSECFILETOUSE --tune $GENIE_XSEC_TUNE')
+                gevgen_command.append('\n')
 
                 gevgen_command = ' '.join(gevgen_command)
                 script.write(gevgen_command)
@@ -102,6 +103,7 @@ class RunScript:
                 edep_command.append('-g ${{INPUT_TAR_DIR_LOCAL}}/{}/geometries/nd_hall_mpd_only_ECal12sides_42l_SPY_v3_wMuID.gdml'.format(configuration.tar_dir_name))
                 edep_command.append('-e ${NSPILL}')
                 edep_command.append('dune-nd.mac')
+                edep_command.append('\n')
 
                 edep_command = ' '.join(edep_command)
                 script.write(edep_command)
