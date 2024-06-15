@@ -12,13 +12,20 @@ class RunScript:
             script.write('#!/bin/bash \n\n')
             script.write('echo "Running on $(hostname) at ${GLIDEIN_Site}. GLIDEIN_DUNESite = ${GLIDEIN_DUNESite}" \n\n')
 
+            # Set the output location for copyback
             script.write('OUTDIR={} \n\n'.format(configuration.outpath))
 
+            # Let's rename the output file so it's unique in case we send multiple jobs
             if configuration.gevgen:
                 script.write('OUTFILE_GENIE=gar_genie_${CLUSTER}_${PROCESS}_$(date -u +%Y%m%d).root \n')
             
             if configuration.edepsim:
                 script.write('OUTFILE_EDEP=gar_edep_${CLUSTER}_${PROCESS}_$(date -u +%Y%m%d).root \n')
+
+            if configuration.garsoft:
+                script.write('OUTFILE_ANA=gar_ana_${CLUSTER}_${PROCESS}_$(date -u +%Y%m%d).root \n')
+                if configuration.gsft_config.copy_reco:
+                    script.write('OUTFILE_RECO=gar_reco_${CLUSTER}_${PROCESS}_$(date -u +%Y%m%d).root \n')
 
             script.write('\n')
 
@@ -29,8 +36,10 @@ class RunScript:
             script.write('  exit 1 \n')
             script.write('fi \n\n')
 
+            # cd back to the top-level directory since we know that's writable
             script.write('cd ${_CONDOR_JOB_IWD} \n\n')
 
+            # Set some other very useful environment variables for xrootd and IFDH
             script.write('export IFDH_CP_MAXRETRIES=2 \n')
             script.write('export XRD_CONNECTIONRETRY=32 \n')
             script.write('export XRD_REQUESTTIMEOUT=14400 \n')
@@ -38,7 +47,9 @@ class RunScript:
             script.write('export XRD_LOADBALANCERTTL=7200 \n')
             script.write('export XRD_STREAMTIMEOUT=14400 \n\n')
 
+            # Make sure the output directory exists
             script.write('ifdh ls $OUTDIR 0 \n')
+            # If ifdh ls failed, try to make the directory
             script.write('if [ $? -ne 0 ]; then \n')
             script.write('    ifdh mkdir_p $OUTDIR || { echo "Error creating or checking $OUTDIR"; exit 2; } \n')
             script.write('fi \n\n')
@@ -70,6 +81,7 @@ class RunScript:
                 script.write(gevgen_command)
                 script.write('\n')
 
+                # ALWAYS keep track of the exit status or your main commands!!!
                 script.write('GENIE_RESULT=$? \n')
                 script.write('if [ $GENIE_RESULT -ne 0 ]; then \n')
                 script.write('    echo "GENIE exited with abnormal status $GENIE_RESULT. See error outputs." \n')
@@ -109,6 +121,7 @@ class RunScript:
                 script.write(edep_command)
                 script.write('\n')
 
+                # ALWAYS keep track of the exit status or your main commands!!!
                 script.write('EDEP_RESULT=$? \n')
                 script.write('if [ $EDEP_RESULT -ne 0 ]; then \n')
                 script.write('    echo "edep-sim exited with abnormal status $EDEP_RESULT. See error outputs." \n')
@@ -127,6 +140,58 @@ class RunScript:
                 script.write('rm $OUTFILE_EDEP \n')
 
                 script.write('\n')
+
+            if configuration.garsoft:
+
+                script.write('if [ -e ${{INPUT_TAR_DIR_LOCAL}}/{}/setup_grid_gsft.sh ]; then \n'.format(configuration.tar_dir_name))
+                script.write('    . ${{INPUT_TAR_DIR_LOCAL}}/{}/setup_grid_gsft.sh \n'.format(configuration.tar_dir_name))
+                script.write('else \n')
+                script.write('  echo "Error, GArSoft setup script not found. Exiting." \n')
+                script.write('  exit 1 \n')
+                script.write('fi \n\n')
+
+                script.write('cp ${{INPUT_TAR_DIR_LOCAL}}/{}/conversion_to_gsft.fcl . \n'.format(configuration.tar_dir_name))
+                script.write('sed -i "s\path_to_edep\${PWD}/neutrino_gar.10000.edep.root\" conversionjob.fcl \n')
+                script.write('sed -i "s\path_to_ghep\${PWD}/neutrino_gar.10000.ghep.root\" conversionjob.fcl \n')
+                script.write('\n')
+
+                script.write('art -c conversion_to_gsft.fcl -n 1000 -o conversion.root \n'.format(configuration.n_events))
+
+                script.write('RESULT=$? \n')
+                script.write('if [ $RESULT -ne 0 ]; then \n')
+                script.write('    echo "GArSoft (conversion) exited with abnormal status $RESULT. See error outputs." \n')
+                script.write('    exit $RESULT \n')
+                script.write('fi \n\n')
+
+                script.write('art -c readoutsimjob_spyv2_edep.fcl conversion.root -n -1 -o readoutsim.root \n')
+                script.write('art -c recojob_trackecalassn2.fcl readoutsim.root -n -1 -o reco.root \n')
+                script.write('art -c recoparticlesjob.fcl reco.root -n -1 -o reco2.root \n')
+                script.write('art -c anajob.fcl reco.root -n -1 \n')
+
+
+                script.write('cp ana.root $OUTFILE_ANA \n')
+                script.write('ifdh cp -D $OUTFILE_ANA $OUTDIR \n\n')
+
+                script.write('IFDH_RESULT=$? \n')
+                script.write('if [ $IFDH_RESULT -ne 0 ]; then \n')
+                script.write('    echo "Error during output copyback. See output logs." \n')
+                script.write('    exit $IFDH_RESULT \n')
+                script.write('fi \n\n')
+
+                script.write('rm $OUTFILE_ANA \n')
+
+                if configuration.gsft_config.copy_reco:
+                    script.write('cp reco2.root $OUTFILE_RECO \n')
+                    script.write('ifdh cp -D $OUTFILE_RECO $OUTDIR \n\n')
+
+                    script.write('IFDH_RESULT=$? \n')
+                    script.write('if [ $IFDH_RESULT -ne 0 ]; then \n')
+                    script.write('    echo "Error during output copyback. See output logs." \n')
+                    script.write('    exit $IFDH_RESULT \n')
+                    script.write('fi \n\n')
+
+                    script.write('rm $OUTFILE_RECO \n')
+
 
             script.write('echo "Completed successfully." \n')
             script.write('exit 0 \n')
