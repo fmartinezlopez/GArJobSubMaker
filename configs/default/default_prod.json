@@ -10,7 +10,7 @@
     "resources": ["DEDICATED", "OPPORTUNISTIC"],
     "enable_gevgen": true,
     "enable_edepsim": true,
-    "enable_garsoft": false,
+    "enable_garsoft": true,
     "outpath": "/pnfs/dune/scratch/users/${GRID_USER}/auto_jobsub_test",
     "defaults": "./"
 }
