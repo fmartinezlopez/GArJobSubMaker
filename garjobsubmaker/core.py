@@ -8,11 +8,12 @@ from garjobsubmaker import run_script
 
 from garjobsubmaker import setup_genie
 from garjobsubmaker import setup_edep
+from garjobsubmaker import setup_garsoft
 
 from garjobsubmaker import jobsub_command
 
 class JobSubmission:
-    def __init__(self, path_to_config, path_to_tar_dir="./jobsubdir", path_to_tar="jobsub.tar.gz") -> None:
+    def __init__(self, path_to_config, path_to_local_product="", path_to_tar_dir="./jobsubdir", path_to_tar="jobsub.tar.gz") -> None:
 
         parser = config_reader.ConfigParser(path_to_config)
         self.config = parser.decode_configs()
@@ -25,6 +26,10 @@ class JobSubmission:
 
         self.config.add_tar_dir_name(path_to_tar_dir)
         self.config.add_tar_path(path_to_tar.absolute())
+
+        if path_to_local_product != "":
+            path_to_local_product = Path(path_to_local_product)
+            self.config.add_gsft_local_products_path(path_to_local_product)
 
     def create_tar_dir(self) -> None:
 
@@ -48,6 +53,9 @@ class JobSubmission:
         if self.config.edepsim:
             setup_edep.EDEPSetup(script_name=self.tar_dir / "setup_grid_edep.sh").write(self.config)
 
+        if self.config.garsoft:
+            setup_garsoft.GArSoftSetup(script_name=self.tar_dir / "setup_grid_gsft.sh").write(self.config)
+
     def add_other_files(self):
         if self.config.gevgen:
             os.mkdir(self.tar_dir / "flux_files")
@@ -57,6 +65,9 @@ class JobSubmission:
             os.mkdir(self.tar_dir / "geometries")
             for file in os.listdir(self.config.defaults / "geometries"):
                 shutil.copy(self.config.defaults / "geometries" / file, self.tar_dir / "geometries" / file, follow_symlinks=False)
+
+        if self.config.garsoft:
+            shutil.copytree(self.config.gsft_config.local_products_path.absolute(), self.tar_dir / self.config.gsft_config.local_products_path.name)
 
     def create_run_script(self):
         script = run_script.RunScript()

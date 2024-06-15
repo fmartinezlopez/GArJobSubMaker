@@ -49,14 +49,20 @@ class Configuration():
     def add_edep_config(self, json):
         self.edep_config = EDEPConfiguration(**json)
 
-    def add_tar_dir_name(self, tar_dir_name):
-        self.tar_dir_name = tar_dir_name
+    def add_gsft_config(self, json):
+        self.gsft_config = GArSoftConfiguration(**json)
 
-    def add_tar_path(self, tar_path):
-        self.tar_path = tar_path
+    def add_tar_dir_name(self, name):
+        self.tar_dir_name = name
 
-    def add_run_script_path(self, run_script_path):
-        self.run_script_path = run_script_path
+    def add_tar_path(self, path):
+        self.tar_path = path
+
+    def add_run_script_path(self, path):
+        self.run_script_path = path
+
+    def add_gsft_local_products_path(self, path):
+        self.gsft_config.add_local_products_path(path)
 
 class GENIEConfiguration():
     def __init__(self, genie, genie_xsec, genie_phyopt, geant4, ND_Production, sam_web_client) -> None:
@@ -72,6 +78,14 @@ class EDEPConfiguration():
     def __init__(self, edepsim) -> None:
 
         self.edepsim = ProductConfiguration(**edepsim)
+
+class GArSoftConfiguration():
+    def __init__(self, copy_reco) -> None:
+
+        self.copy_reco = copy_reco
+
+    def add_local_products_path(self, path):
+        self.local_products_path = path
 
 class ProductConfiguration():
     def __init__(self, version, qualifier) -> None:
@@ -117,5 +131,8 @@ class ConfigParser:
 
         if 'EDEPConfiguration' in self.configs_dict:
             config.add_edep_config(self.configs_dict['EDEPConfiguration'])
+
+        if 'GArSoftConfiguration' in self.configs_dict:
+            config.add_gsft_config(self.configs_dict['GArSoftConfiguration'])
 
         return config
