@@ -1,0 +1,5 @@
+#include "conversionedepjob.fcl"
+
+physics.producers.edepconvert.EDepSimFile: "path_to_edep"
+physics.producers.edepconvert.GhepFile: "path_to_ghep"
+physics.producers.edepconvert.OverlayFile: false
