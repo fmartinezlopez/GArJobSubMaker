@@ -16,6 +16,6 @@ class GArSoftSetup:
             script.write('unsetup sam_web_client \n')
 
             script.write('export MRB_PROJECT=garsoft \n')
-            script.write('source ${INPUT_TAR_DIR_LOCAL}/localProducts*/setup-grid \n'.format(configuration.tar_dir_name))
+            script.write('source ${{INPUT_TAR_DIR_LOCAL}}/{}/localProducts*/setup-grid \n'.format(configuration.tar_dir_name))
             script.write('mrbslp \n')
             script.write('\n')
