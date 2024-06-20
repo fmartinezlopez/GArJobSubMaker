@@ -1,0 +1,10 @@
+#include "NDCAFMaker.fcl"
+
+nd_cafmaker: @local::standard_nd_cafmaker
+
+# ND-GAr test setup
+nd_cafmaker.CAFMakerSettings.MakeFlatCAF:             flat_caf
+
+nd_cafmaker.CAFMakerSettings.GHEPFiles:               [ghep_path]
+nd_cafmaker.CAFMakerSettings.NDGArRecoFile:           ndgar_reco_path
+nd_cafmaker.CAFMakerSettings.OutputFile:              out_path
