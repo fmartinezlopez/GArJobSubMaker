@@ -3,6 +3,7 @@ dist/
 garjobsubmaker.egg-info/
 flux_files/
 jobsubdir/
+*.tbz2
 jobsub.tar.gz
 launch_job.sh
 run_script.sh
