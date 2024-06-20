@@ -67,7 +67,18 @@ class JobSubmission:
                 shutil.copy(self.config.defaults / "geometries" / file, self.tar_dir / "geometries" / file, follow_symlinks=False)
 
         if self.config.garsoft:
-            shutil.copytree(self.config.gsft_config.local_products_path.absolute(), self.tar_dir / self.config.gsft_config.local_products_path.name)
+            shutil.copytree(self.config.gsft_config.local_products_path.absolute(), self.tar_dir / "garsoft" / self.config.gsft_config.local_products_path.name)
+
+            path_to_setup_grid = self.tar_dir / 'garsoft' / self.config.gsft_config.local_products_path.name / 'setup-grid'
+            shutil.copy(self.config.defaults / "templates/setup-grid", path_to_setup_grid)
+
+            compiler, flag = config_reader.split_qualifier(self.config.gsft_config.garsoft.qualifier)
+
+            os.system(r"sed -i 's\tar_dir\{}\' {}".format(self.tar_dir, path_to_setup_grid))
+            os.system(r"sed -i 's\qual_comp\{}\' {}".format(compiler, path_to_setup_grid))
+            os.system(r"sed -i 's\qual_flag\{}\' {}".format(flag, path_to_setup_grid))
+
+            shutil.copy(self.config.defaults / "templates/conversion_to_gsft.fcl", self.tar_dir / "conversion_to_gsft.fcl")
 
     def create_run_script(self):
         script = run_script.RunScript()

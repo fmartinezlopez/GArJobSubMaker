@@ -11,11 +11,11 @@ class GArSoftSetup:
 
             script.write('unsetup ifdhc \n')
             script.write('unsetup edepsim \n')
-            script.write('unseup lhapdf \n')
+            script.write('unsetup lhapdf \n')
             script.write('unsetup genie \n')
             script.write('unsetup sam_web_client \n')
 
             script.write('export MRB_PROJECT=garsoft \n')
-            script.write('source ${{INPUT_TAR_DIR_LOCAL}}/{}/localProducts*/setup-grid \n'.format(configuration.tar_dir_name))
+            script.write('source ${{INPUT_TAR_DIR_LOCAL}}/{}/garsoft/localProducts*/setup-grid \n'.format(configuration.tar_dir_name))
             script.write('mrbslp \n')
             script.write('\n')

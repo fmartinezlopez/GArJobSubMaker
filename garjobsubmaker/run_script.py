@@ -151,25 +151,48 @@ class RunScript:
                 script.write('fi \n\n')
 
                 script.write('cp ${{INPUT_TAR_DIR_LOCAL}}/{}/conversion_to_gsft.fcl . \n'.format(configuration.tar_dir_name))
-                script.write('sed -i "s\path_to_edep\${PWD}/neutrino_gar.10000.edep.root\" conversionjob.fcl \n')
-                script.write('sed -i "s\path_to_ghep\${PWD}/neutrino_gar.10000.ghep.root\" conversionjob.fcl \n')
+                script.write(r"sed -i 's\path_to_edep\${PWD}/neutrino_gar.10000.edep.root\' conversion_to_gsft.fcl")
                 script.write('\n')
+                script.write(r"sed -i 's\path_to_ghep\${PWD}/neutrino_gar.10000.ghep.root\' conversion_to_gsft.fcl")
+                script.write('\n\n')
 
-                script.write('art -c conversion_to_gsft.fcl -n 1000 -o conversion.root \n'.format(configuration.n_events))
-
+                script.write('art -c conversion_to_gsft.fcl -n {} -o conversion.root \n'.format(configuration.n_events))
                 script.write('RESULT=$? \n')
                 script.write('if [ $RESULT -ne 0 ]; then \n')
                 script.write('    echo "GArSoft (conversion) exited with abnormal status $RESULT. See error outputs." \n')
                 script.write('    exit $RESULT \n')
                 script.write('fi \n\n')
 
-                script.write('art -c readoutsimjob_spyv2_edep.fcl conversion.root -n -1 -o readoutsim.root \n')
-                script.write('art -c recojob_trackecalassn2.fcl readoutsim.root -n -1 -o reco.root \n')
-                script.write('art -c recoparticlesjob.fcl reco.root -n -1 -o reco2.root \n')
-                script.write('art -c anajob.fcl reco.root -n -1 \n')
+                script.write('art -c readoutsimjob_edep.fcl conversion.root -n -1 -o readoutsim.root \n')
+                script.write('RESULT=$? \n')
+                script.write('if [ $RESULT -ne 0 ]; then \n')
+                script.write('    echo "GArSoft (readoutsim) exited with abnormal status $RESULT. See error outputs." \n')
+                script.write('    exit $RESULT \n')
+                script.write('fi \n\n')
+
+                script.write('art -c recojob_trackecalassn2_edep.fcl readoutsim.root -n -1 -o reco.root \n')
+                script.write('RESULT=$? \n')
+                script.write('if [ $RESULT -ne 0 ]; then \n')
+                script.write('    echo "GArSoft (reco) exited with abnormal status $RESULT. See error outputs." \n')
+                script.write('    exit $RESULT \n')
+                script.write('fi \n\n')
+
+                script.write('art -c recoparticlesjob_edep.fcl reco.root -n -1 -o reco2.root \n')
+                script.write('RESULT=$? \n')
+                script.write('if [ $RESULT -ne 0 ]; then \n')
+                script.write('    echo "GArSoft (recoparticles) exited with abnormal status $RESULT. See error outputs." \n')
+                script.write('    exit $RESULT \n')
+                script.write('fi \n\n')
+
+                script.write('art -c anajob_edep.fcl reco2.root -n -1 \n')
+                script.write('RESULT=$? \n')
+                script.write('if [ $RESULT -ne 0 ]; then \n')
+                script.write('    echo "GArSoft (anatree) exited with abnormal status $RESULT. See error outputs." \n')
+                script.write('    exit $RESULT \n')
+                script.write('fi \n\n')
 
 
-                script.write('cp ana.root $OUTFILE_ANA \n')
+                script.write('cp anatree.root $OUTFILE_ANA \n')
                 script.write('ifdh cp -D $OUTFILE_ANA $OUTDIR \n\n')
 
                 script.write('IFDH_RESULT=$? \n')

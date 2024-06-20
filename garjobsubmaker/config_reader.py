@@ -3,6 +3,20 @@ from pathlib import Path
 import json
 import collections
 
+def split_qualifier(qual):
+    # Split the input string by the colon
+    parts = qual.split(':')
+    
+    # Identify which part starts with 'e' or 'c'
+    if parts[0].startswith('e') or parts[0].startswith('c'):
+        compiler = parts[0]
+        flag = parts[1]
+    else:
+        compiler = parts[1]
+        flag = parts[0]
+    
+    return compiler, flag
+
 class ConfigsDict(collections.UserDict):
     def __init__(self, inp=None):
         if isinstance(inp, collections.UserDict):
@@ -80,8 +94,9 @@ class EDEPConfiguration():
         self.edepsim = ProductConfiguration(**edepsim)
 
 class GArSoftConfiguration():
-    def __init__(self, copy_reco) -> None:
+    def __init__(self, garsoft, copy_reco) -> None:
 
+        self.garsoft = ProductConfiguration(**garsoft)
         self.copy_reco = copy_reco
 
     def add_local_products_path(self, path):
