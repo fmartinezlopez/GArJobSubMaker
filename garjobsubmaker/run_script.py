@@ -56,6 +56,7 @@ class RunScript:
 
             if configuration.gevgen:
 
+                # Run gevgen setup script
                 script.write('if [ -e ${{INPUT_TAR_DIR_LOCAL}}/{}/setup_grid_genie.sh ]; then \n'.format(configuration.tar_dir_name))
                 script.write('    . ${{INPUT_TAR_DIR_LOCAL}}/{}/setup_grid_genie.sh \n'.format(configuration.tar_dir_name))
                 script.write('else \n')
@@ -63,6 +64,7 @@ class RunScript:
                 script.write('  exit 1 \n')
                 script.write('fi \n\n')
 
+                # Put together gevgen command
                 gevgen_command = ['gevgen_fnal']
                 gevgen_command.append('-f ${{INPUT_TAR_DIR_LOCAL}}/{}/flux_files/gsimple*,DUNEND'.format(configuration.tar_dir_name))
                 gevgen_command.append('-g ${{INPUT_TAR_DIR_LOCAL}}/{}/geometries/nd_hall_mpd_only_ECal12sides_42l_SPY_v3_wMuID.gdml'.format(configuration.tar_dir_name))
@@ -77,6 +79,7 @@ class RunScript:
                 gevgen_command.append('--cross-sections $GENIEXSECFILETOUSE --tune $GENIE_XSEC_TUNE')
                 gevgen_command.append('\n')
 
+                # Run gevgen
                 gevgen_command = ' '.join(gevgen_command)
                 script.write(gevgen_command)
                 script.write('\n')
@@ -88,6 +91,7 @@ class RunScript:
                 script.write('    exit $GENIE_RESULT \n')
                 script.write('fi \n\n')
 
+                # Copy gevgen output
                 script.write('cp neutrino_gar.10000.ghep.root $OUTFILE_GENIE \n')
                 script.write('ifdh cp -D $OUTFILE_GENIE $OUTDIR \n\n')
 
@@ -103,6 +107,7 @@ class RunScript:
 
             if configuration.edepsim:
 
+                # Run edep-sim setup script
                 script.write('if [ -e ${{INPUT_TAR_DIR_LOCAL}}/{}/setup_grid_edep.sh ]; then \n'.format(configuration.tar_dir_name))
                 script.write('    . ${{INPUT_TAR_DIR_LOCAL}}/{}/setup_grid_edep.sh \n'.format(configuration.tar_dir_name))
                 script.write('else \n')
@@ -110,6 +115,7 @@ class RunScript:
                 script.write('  exit 1 \n')
                 script.write('fi \n\n')
 
+                # Put together edep-sim command
                 edep_command = ['edep-sim -C']
                 edep_command.append('-o ${EDEP_OUTPUT_FILE}')
                 edep_command.append('-g ${{INPUT_TAR_DIR_LOCAL}}/{}/geometries/nd_hall_mpd_only_ECal12sides_42l_SPY_v3_wMuID.gdml'.format(configuration.tar_dir_name))
@@ -117,17 +123,18 @@ class RunScript:
                 edep_command.append('dune-nd.mac')
                 edep_command.append('\n')
 
+                # Run edep-sim
                 edep_command = ' '.join(edep_command)
                 script.write(edep_command)
                 script.write('\n')
 
-                # ALWAYS keep track of the exit status or your main commands!!!
                 script.write('EDEP_RESULT=$? \n')
                 script.write('if [ $EDEP_RESULT -ne 0 ]; then \n')
                 script.write('    echo "edep-sim exited with abnormal status $EDEP_RESULT. See error outputs." \n')
                 script.write('    exit $EDEP_RESULT \n')
                 script.write('fi \n\n')
 
+                # Copy edep-sim output
                 script.write('cp neutrino_gar.10000.edep.root $OUTFILE_EDEP \n')
                 script.write('ifdh cp -D $OUTFILE_EDEP $OUTDIR \n\n')
 
@@ -143,6 +150,7 @@ class RunScript:
 
             if configuration.garsoft:
 
+                # Run GArSoft setup script
                 script.write('if [ -e ${{INPUT_TAR_DIR_LOCAL}}/{}/setup_grid_gsft.sh ]; then \n'.format(configuration.tar_dir_name))
                 script.write('    . ${{INPUT_TAR_DIR_LOCAL}}/{}/setup_grid_gsft.sh \n'.format(configuration.tar_dir_name))
                 script.write('else \n')
@@ -150,48 +158,96 @@ class RunScript:
                 script.write('  exit 1 \n')
                 script.write('fi \n\n')
 
-                script.write('cp ${{INPUT_TAR_DIR_LOCAL}}/{}/conversion_to_gsft.fcl . \n'.format(configuration.tar_dir_name))
-                script.write(r"sed -i 's\path_to_edep\${PWD}/neutrino_gar.10000.edep.root\' conversion_to_gsft.fcl")
-                script.write('\n')
-                script.write(r"sed -i 's\path_to_ghep\${PWD}/neutrino_gar.10000.ghep.root\' conversion_to_gsft.fcl")
-                script.write('\n\n')
+                if configuration.gevgen:
 
-                script.write('art -c conversion_to_gsft.fcl -n {} -o conversion.root \n'.format(configuration.n_events))
-                script.write('RESULT=$? \n')
-                script.write('if [ $RESULT -ne 0 ]; then \n')
-                script.write('    echo "GArSoft (conversion) exited with abnormal status $RESULT. See error outputs." \n')
-                script.write('    exit $RESULT \n')
-                script.write('fi \n\n')
+                    # If gevgen was used, convert its output to ART
+                    script.write('cp ${{INPUT_TAR_DIR_LOCAL}}/{}/conversion_to_gsft.fcl . \n'.format(configuration.tar_dir_name))
+                    script.write(r"sed -i 's\path_to_ghep\${PWD}/neutrino_gar.10000.ghep.root\' conversion_to_gsft.fcl")
+                    script.write('\n')
 
-                script.write('art -c readoutsimjob_edep.fcl conversion.root -n -1 -o readoutsim.root \n')
+                    if configuration.edepsim:
+
+                        # If edep-sim was also used, convert its output to ART
+                        script.write(r"sed -i 's\path_to_edep\${PWD}/neutrino_gar.10000.edep.root\' conversion_to_gsft.fcl")
+                        script.write('\n')
+
+                        convert_outname = "genie_g4"
+                        fcl_subfix = "_edep"
+
+                    else:
+
+                        # If not, remove that bit from the fcl
+                        script.write(r"sed -i 's\path_to_edep\\' conversion_to_gsft.fcl")
+                        script.write('\n')
+
+                        convert_outname = "genie"
+                        fcl_subfix = ""
+
+                    script.write('cat conversion_to_gsft.fcl \n')
+                    
+                    # Run conversion tool
+                    script.write('art -c conversion_to_gsft.fcl -n {} -o {}.root \n'.format(configuration.n_events, convert_outname))
+                    script.write('RESULT=$? \n')
+                    script.write('if [ $RESULT -ne 0 ]; then \n')
+                    script.write('    echo "GArSoft (conversion) exited with abnormal status $RESULT. See error outputs." \n')
+                    script.write('    exit $RESULT \n')
+                    script.write('fi \n\n')
+
+                    if not configuration.edepsim:
+
+                        # If we just ran gevgen we need to run GArG4 now on the conversion output
+                        script.write('art -c rungeant4.fcl genie.root -n -1 -o genie_g4.root \n')
+                        script.write('RESULT=$? \n')
+                        script.write('if [ $RESULT -ne 0 ]; then \n')
+                        script.write('    echo "GArSoft (GArG4) exited with abnormal status $RESULT. See error outputs." \n')
+                        script.write('    exit $RESULT \n')
+                        script.write('fi \n\n')
+
+                else:
+
+                    # If this is a standalone GArSoft job, run the default prodgenie
+                    script.write('art -c prodgenie.fcl -n {} -o genie_g4.root \n'.format(configuration.n_events))
+                    script.write('RESULT=$? \n')
+                    script.write('if [ $RESULT -ne 0 ]; then \n')
+                    script.write('    echo "GArSoft (prodgenie) exited with abnormal status $RESULT. See error outputs." \n')
+                    script.write('    exit $RESULT \n')
+                    script.write('fi \n\n')
+
+                    fcl_subfix = ""
+
+                # Run readout simulation
+                script.write('art -c readoutsimjob{}.fcl genie_g4.root -n -1 -o readoutsim.root \n'.format(fcl_subfix))
                 script.write('RESULT=$? \n')
                 script.write('if [ $RESULT -ne 0 ]; then \n')
                 script.write('    echo "GArSoft (readoutsim) exited with abnormal status $RESULT. See error outputs." \n')
                 script.write('    exit $RESULT \n')
                 script.write('fi \n\n')
 
-                script.write('art -c recojob_trackecalassn2_edep.fcl readoutsim.root -n -1 -o reco.root \n')
+                # Run reconstruction (with trackfit2 and trackecalassn2)
+                script.write('art -c recojob_trackecalassn2{}.fcl readoutsim.root -n -1 -o reco.root \n'.format(fcl_subfix))
                 script.write('RESULT=$? \n')
                 script.write('if [ $RESULT -ne 0 ]; then \n')
                 script.write('    echo "GArSoft (reco) exited with abnormal status $RESULT. See error outputs." \n')
                 script.write('    exit $RESULT \n')
                 script.write('fi \n\n')
 
-                script.write('art -c recoparticlesjob_edep.fcl reco.root -n -1 -o reco2.root \n')
+                # Run PID algorithms
+                script.write('art -c recoparticlesjob{}.fcl reco.root -n -1 -o reco2.root \n'.format(fcl_subfix))
                 script.write('RESULT=$? \n')
                 script.write('if [ $RESULT -ne 0 ]; then \n')
                 script.write('    echo "GArSoft (recoparticles) exited with abnormal status $RESULT. See error outputs." \n')
                 script.write('    exit $RESULT \n')
                 script.write('fi \n\n')
 
-                script.write('art -c anajob_edep.fcl reco2.root -n -1 \n')
+                # Run analysis module (i.e. make ntuples)
+                script.write('art -c anajob{}.fcl reco2.root -n -1 \n'.format(fcl_subfix))
                 script.write('RESULT=$? \n')
                 script.write('if [ $RESULT -ne 0 ]; then \n')
                 script.write('    echo "GArSoft (anatree) exited with abnormal status $RESULT. See error outputs." \n')
                 script.write('    exit $RESULT \n')
                 script.write('fi \n\n')
 
-
+                # Copy anatree
                 script.write('cp anatree.root $OUTFILE_ANA \n')
                 script.write('ifdh cp -D $OUTFILE_ANA $OUTDIR \n\n')
 
@@ -204,6 +260,8 @@ class RunScript:
                 script.write('rm $OUTFILE_ANA \n')
 
                 if configuration.gsft_config.copy_reco:
+
+                    # Copy reconstruction output
                     script.write('cp reco2.root $OUTFILE_RECO \n')
                     script.write('ifdh cp -D $OUTFILE_RECO $OUTDIR \n\n')
 

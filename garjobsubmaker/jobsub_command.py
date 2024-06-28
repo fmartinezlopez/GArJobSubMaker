@@ -38,3 +38,7 @@ class JobSubScript:
 
             jobsub_command = ' '.join(jobsub_command)
             script.write(jobsub_command)
+
+            script.write('\n\n')
+
+            script.write('rm *.tbz2')
