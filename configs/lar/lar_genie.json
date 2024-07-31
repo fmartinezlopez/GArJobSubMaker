@@ -1,0 +1,28 @@
+{
+    "__type__": "GENIEConfiguration",
+    "genie": {
+        "version": "v3_04_00",
+        "qualifier": "e20:prof"
+    },
+    "genie_xsec": {
+        "version": "v3_04_00",
+        "qualifier": "G1810a0211a:e1000:k250"
+    },
+    "genie_phyopt": {
+        "version": "v3_04_00",
+        "qualifier": "dkcharmtau"
+    },
+    "geant4": {
+        "version": "v4_11_0_p01c",
+        "qualifier": "e20:prof"
+    },
+    "ND_Production": {
+        "version": "v01_05_00",
+        "qualifier": "e17:prof"
+    },
+    "sam_web_client": {
+        "version": "v2_2",
+        "qualifier": ""
+    },
+    "topvolume": "volArgonCubeDetector75"
+}

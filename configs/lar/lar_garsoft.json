@@ -1,0 +1,8 @@
+{
+    "__type__": "GArSoftConfiguration",
+    "garsoft": {
+        "version": "v2_20_00",
+        "qualifier": "e26:prof"
+    },
+    "copy_reco": false
+}
