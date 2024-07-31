@@ -67,8 +67,8 @@ class RunScript:
                 # Put together gevgen command
                 gevgen_command = ['gevgen_fnal']
                 gevgen_command.append('-f ${{INPUT_TAR_DIR_LOCAL}}/{}/flux_files/gsimple*,DUNEND'.format(configuration.tar_dir_name))
-                gevgen_command.append('-g ${{INPUT_TAR_DIR_LOCAL}}/{}/geometries/nd_hall_mpd_only_ECal12sides_42l_SPY_v3_wMuID.gdml'.format(configuration.tar_dir_name))
-                gevgen_command.append('-t volGArTPC')
+                gevgen_command.append('-g ${{INPUT_TAR_DIR_LOCAL}}/{}/geometries/{}'.format(configuration.tar_dir_name, configuration.geometry))
+                gevgen_command.append('-t {}'.format(configuration.genie_config.topvolume))
                 gevgen_command.append('-L cm -D g_cm3')
                 gevgen_command.append('-n {}'.format(configuration.n_events))
                 gevgen_command.append('--seed $(date -u +%Y%m%d%H%M%S)')
@@ -118,7 +118,7 @@ class RunScript:
                 # Put together edep-sim command
                 edep_command = ['edep-sim -C']
                 edep_command.append('-o ${EDEP_OUTPUT_FILE}')
-                edep_command.append('-g ${{INPUT_TAR_DIR_LOCAL}}/{}/geometries/nd_hall_mpd_only_ECal12sides_42l_SPY_v3_wMuID.gdml'.format(configuration.tar_dir_name))
+                edep_command.append('-g ${{INPUT_TAR_DIR_LOCAL}}/{}/geometries/{}'.format(configuration.tar_dir_name, configuration.geometry))
                 edep_command.append('-e ${NSPILL}')
                 edep_command.append('dune-nd.mac')
                 edep_command.append('\n')

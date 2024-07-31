@@ -37,10 +37,11 @@ class ConfigsDict(collections.UserDict):
 
 
 class Configuration():
-    def __init__(self, n_events, n_jobs, mail, memory, disk, lifetime, cpu, resources, enable_gevgen, enable_edepsim, enable_garsoft, outpath, defaults) -> None:
+    def __init__(self, n_events, n_jobs, geometry, mail, memory, disk, lifetime, cpu, resources, enable_gevgen, enable_edepsim, enable_garsoft, outpath, defaults) -> None:
 
         self.n_events  = n_events           # number of events to produce
         self.n_jobs    = n_jobs             # number of jobs to divide
+        self.geometry  = geometry
         self.mail      = mail
         self.memory    = memory
         self.disk      = disk
@@ -79,7 +80,7 @@ class Configuration():
         self.gsft_config.add_local_products_path(path)
 
 class GENIEConfiguration():
-    def __init__(self, genie, genie_xsec, genie_phyopt, geant4, ND_Production, sam_web_client) -> None:
+    def __init__(self, genie, genie_xsec, genie_phyopt, geant4, ND_Production, sam_web_client, topvolume) -> None:
         
         self.genie          = ProductConfiguration(**genie)
         self.genie_xsec     = ProductConfiguration(**genie_xsec)
@@ -87,6 +88,8 @@ class GENIEConfiguration():
         self.geant4         = ProductConfiguration(**geant4)
         self.ND_Production  = ProductConfiguration(**ND_Production)
         self.sam_web_client = ProductConfiguration(**sam_web_client)
+
+        self.topvolume = topvolume
 
 class EDEPConfiguration():
     def __init__(self, edepsim) -> None:
