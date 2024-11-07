@@ -80,7 +80,7 @@ class Configuration():
         self.gsft_config.add_local_products_path(path)
 
 class GENIEConfiguration():
-    def __init__(self, genie, genie_xsec, genie_phyopt, geant4, ND_Production, sam_web_client, topvolume) -> None:
+    def __init__(self, genie, genie_xsec, genie_phyopt, geant4, ND_Production, sam_web_client, topvolume, seed) -> None:
         
         self.genie          = ProductConfiguration(**genie)
         self.genie_xsec     = ProductConfiguration(**genie_xsec)
@@ -90,6 +90,7 @@ class GENIEConfiguration():
         self.sam_web_client = ProductConfiguration(**sam_web_client)
 
         self.topvolume = topvolume
+        self.seed      = seed
 
 class EDEPConfiguration():
     def __init__(self, edepsim) -> None:
