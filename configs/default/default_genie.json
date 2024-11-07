@@ -23,5 +23,7 @@
     "sam_web_client": {
         "version": "v2_2",
         "qualifier": ""
-    }
+    },
+    "topvolume": "volGArTPC",
+    "seed": 10000
 }

@@ -24,5 +24,6 @@
         "version": "v2_2",
         "qualifier": ""
     },
-    "topvolume": "volArgonCubeDetector75"
+    "topvolume": "volArgonCubeDetector75",
+    "seed": 10000
 }

@@ -4,5 +4,5 @@
         "version": "v2_20_00",
         "qualifier": "e26:prof"
     },
-    "copy_reco": true
+    "copy_reco": false
 }

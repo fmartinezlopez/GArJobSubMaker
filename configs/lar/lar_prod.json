@@ -1,6 +1,6 @@
 {
     "__type__": "GlobalConfiguration",
-    "n_events": 10,
+    "n_events": 100,
     "n_jobs": 10,
     "geometry": "nd_hall_mpd_lar_ECal12sides_42l_SPY_v3_wMuID.gdml",
     "mail": false,
@@ -12,6 +12,6 @@
     "enable_gevgen": true,
     "enable_edepsim": true,
     "enable_garsoft": true,
-    "outpath": "/pnfs/dune/scratch/users/${GRID_USER}/auto_jobsub_lar_100",
+    "outpath": "/pnfs/dune/scratch/users/${GRID_USER}/auto_jobsub_lar",
     "defaults": "./"
 }
