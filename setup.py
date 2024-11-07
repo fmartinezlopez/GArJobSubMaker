@@ -17,5 +17,7 @@ setup(
     author_email='f.martinezlopez@qmul.ac.uk',
     url='https://github.com/fmartinezlopez/GArJobSubMaker',
     license=license,
-    packages=find_packages(exclude=('scripts'))
+    packages=find_packages(exclude=('scripts')),
+    package_data={'': ['LICENSE']},
+    include_package_data=True
 )
