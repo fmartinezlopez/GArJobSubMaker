@@ -49,9 +49,8 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 @click.option('--path_to_ana', type=str, default="", show_default=True)
 @click.option('--path_to_caf', type=str, default="", show_default=True)
 @click.option('--path_to_cafmaker', type=str, default="", show_default=True)
-@click.option('--out_name', type=str, default="gar_caf", show_default=True)
 @click.option('--flat', is_flag=True, default=False, show_default=True)
-def cli(path_to_ghep: str, path_to_ana: str, path_to_caf: str, path_to_cafmaker: str, out_name: str, flat: bool) -> None:
+def cli(path_to_ghep: str, path_to_ana: str, path_to_caf: str, path_to_cafmaker: str, flat: bool) -> None:
 
     ghep_list = get_datafile_list(path_to_ghep)
     ghep_list = sorted_nicely(ghep_list)
@@ -61,6 +60,8 @@ def cli(path_to_ghep: str, path_to_ana: str, path_to_caf: str, path_to_cafmaker:
 
     n_ghep = len(ghep_list)
     n_ana = len(ana_list)
+    print(n_ghep)
+    print(n_ana)
 
     if n_ghep == n_ana:
         n_jobs = n_ghep
@@ -75,15 +76,15 @@ def cli(path_to_ghep: str, path_to_ana: str, path_to_caf: str, path_to_cafmaker:
         os.mkdir(path_to_cafmaker / "cfg" / "caf_job")
         
         for j in range(n_jobs):
-            print(ghep_list[j], ana_list[j])
+            print(j)
             fcl_path = path_to_cafmaker / "cfg" / "caf_job" / "ndcafmakerjob_{}.fcl".format(j)
-            print(os.getcwd())
+            #print(os.getcwd())
             shutil.copy("templates/ndcafmakerjob.fcl", fcl_path)
 
             os.system(r'''sed -i 's\flat_caf\{}\' {}'''.format("true" if flat else "false", fcl_path))
             os.system(r'''sed -i 's\ghep_path\"{}"\' {}'''.format(path_to_ghep / ghep_list[j], fcl_path))
             os.system(r'''sed -i 's\ndgar_reco_path\"{}"\' {}'''.format(path_to_ana / ana_list[j], fcl_path))
-            os.system(r'''sed -i 's\out_path\"{}"\' {}'''.format(path_to_caf / ghep_list[j].replace('gar_genie', out_name), fcl_path))
+            os.system(r'''sed -i 's\out_path\"{}"\' {}'''.format(path_to_caf / ghep_list[j].replace('ghep', 'caf'), fcl_path))
 
     else:
         raise ValueError("Provided different numbers of GHEP and ana files!")
