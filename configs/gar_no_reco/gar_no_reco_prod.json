@@ -1,0 +1,17 @@
+{
+    "__type__": "GlobalConfiguration",
+    "n_events": 10,
+    "n_jobs": 1,
+    "geometry": "nd_hall_mpd_only_ECal12sides_42l_SPY_v3_wMuID.gdml",
+    "mail": false,
+    "memory": "2500MB",
+    "disk": "2GB",
+    "lifetime": "4h",
+    "cpu": 1,
+    "resources": ["DEDICATED", "OPPORTUNISTIC"],
+    "enable_gevgen": true,
+    "enable_edepsim": true,
+    "enable_garsoft": true,
+    "outpath": "/pnfs/dune/scratch/users/${GRID_USER}/gar_no_reco_test",
+    "defaults": "./"
+}

@@ -1,0 +1,7 @@
+{
+    "__type__": "EDEPConfiguration",
+    "edepsim": {
+        "version": "v3_2_0",
+        "qualifier": "e20:prof"
+    }
+}

@@ -98,9 +98,12 @@ class EDEPConfiguration():
         self.edepsim = ProductConfiguration(**edepsim)
 
 class GArSoftConfiguration():
-    def __init__(self, garsoft, copy_reco) -> None:
+    def __init__(self, garsoft, run_sim, run_reco, run_pid, copy_reco) -> None:
 
-        self.garsoft = ProductConfiguration(**garsoft)
+        self.garsoft   = ProductConfiguration(**garsoft)
+        self.run_sim   = run_sim
+        self.run_reco  = run_reco
+        self.run_pid   = run_pid
         self.copy_reco = copy_reco
 
     def add_local_products_path(self, path):

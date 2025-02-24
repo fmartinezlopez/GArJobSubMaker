@@ -79,6 +79,7 @@ class JobSubmission:
             os.system(r"sed -i 's\qual_flag\{}\' {}".format(flag, path_to_setup_grid))
 
             shutil.copy(self.config.defaults / "templates/conversion_to_gsft.fcl", self.tar_dir / "conversion_to_gsft.fcl")
+            shutil.copy(self.config.defaults / "templates/anajob.fcl", self.tar_dir / "anajob.fcl")
 
     def create_run_script(self):
         script = run_script.RunScript()

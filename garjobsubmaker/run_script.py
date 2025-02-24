@@ -216,32 +216,57 @@ class RunScript:
 
                     fcl_subfix = ""
 
-                # Run readout simulation
-                script.write('art -c readoutsimjob{}.fcl genie_g4.root -n -1 -o readoutsim.root \n'.format(fcl_subfix))
-                script.write('RESULT=$? \n')
-                script.write('if [ $RESULT -ne 0 ]; then \n')
-                script.write('    echo "GArSoft (readoutsim) exited with abnormal status $RESULT. See error outputs." \n')
-                script.write('    exit $RESULT \n')
-                script.write('fi \n\n')
+                last_file = "genie_g4.root"
 
-                # Run reconstruction (with trackfit2 and trackecalassn2)
-                script.write('art -c recojob_trackecalassn2{}.fcl readoutsim.root -n -1 -o reco.root \n'.format(fcl_subfix))
-                script.write('RESULT=$? \n')
-                script.write('if [ $RESULT -ne 0 ]; then \n')
-                script.write('    echo "GArSoft (reco) exited with abnormal status $RESULT. See error outputs." \n')
-                script.write('    exit $RESULT \n')
-                script.write('fi \n\n')
+                if configuration.gsft_config.run_sim:
 
-                # Run PID algorithms
-                script.write('art -c recoparticlesjob{}.fcl reco.root -n -1 -o reco2.root \n'.format(fcl_subfix))
-                script.write('RESULT=$? \n')
-                script.write('if [ $RESULT -ne 0 ]; then \n')
-                script.write('    echo "GArSoft (recoparticles) exited with abnormal status $RESULT. See error outputs." \n')
-                script.write('    exit $RESULT \n')
-                script.write('fi \n\n')
+                    # Run readout simulation
+                    script.write('art -c readoutsimjob{}.fcl genie_g4.root -n -1 -o readoutsim.root \n'.format(fcl_subfix))
+                    script.write('RESULT=$? \n')
+                    script.write('if [ $RESULT -ne 0 ]; then \n')
+                    script.write('    echo "GArSoft (readoutsim) exited with abnormal status $RESULT. See error outputs." \n')
+                    script.write('    exit $RESULT \n')
+                    script.write('fi \n\n')
+
+                    last_file = "readoutsim.root"
+
+                if configuration.gsft_config.run_reco:
+                    # Run reconstruction (with trackfit2 and trackecalassn2)
+                    script.write('art -c recojob_trackecalassn2{}.fcl readoutsim.root -n -1 -o reco.root \n'.format(fcl_subfix))
+                    script.write('RESULT=$? \n')
+                    script.write('if [ $RESULT -ne 0 ]; then \n')
+                    script.write('    echo "GArSoft (reco) exited with abnormal status $RESULT. See error outputs." \n')
+                    script.write('    exit $RESULT \n')
+                    script.write('fi \n\n')
+
+                    last_file = "reco.root"
+
+                if configuration.gsft_config.run_pid:
+                    # Run PID algorithms
+                    script.write('art -c recoparticlesjob{}.fcl reco.root -n -1 -o reco2.root \n'.format(fcl_subfix))
+                    script.write('RESULT=$? \n')
+                    script.write('if [ $RESULT -ne 0 ]; then \n')
+                    script.write('    echo "GArSoft (recoparticles) exited with abnormal status $RESULT. See error outputs." \n')
+                    script.write('    exit $RESULT \n')
+                    script.write('fi \n\n')
+
+                    last_file = "reco2.root"
+
+                # Copy and modify anajob module
+                script.write('cp ${{INPUT_TAR_DIR_LOCAL}}/{}/anajob.fcl . \n'.format(configuration.tar_dir_name))
+                script.write(r"sed -i 's\fcl_subfix\{}\' anajob.fcl".format(fcl_subfix))
+                script.write('\n')
+                if configuration.gsft_config.run_reco:
+                    script.write(r"sed -i 's\reco\true\' anajob.fcl")
+                    script.write('\n')
+                if configuration.gsft_config.run_pid:
+                    script.write(r"sed -i 's\reco2\true\' anajob.fcl")
+                    script.write('\n')
+
+                script.write('cat anajob.fcl \n')
 
                 # Run analysis module (i.e. make ntuples)
-                script.write('art -c anajob{}.fcl reco2.root -n -1 \n'.format(fcl_subfix))
+                script.write('art -c anajob.fcl {} -n -1 \n'.format(last_file))
                 script.write('RESULT=$? \n')
                 script.write('if [ $RESULT -ne 0 ]; then \n')
                 script.write('    echo "GArSoft (anatree) exited with abnormal status $RESULT. See error outputs." \n')
@@ -260,10 +285,14 @@ class RunScript:
 
                 script.write('rm $OUTFILE_ANA \n')
 
+                # Copy reconstruction output
                 if configuration.gsft_config.copy_reco:
 
-                    # Copy reconstruction output
-                    script.write('cp reco2.root $OUTFILE_RECO \n')
+                    if configuration.gsft_config.run_pid:
+                        script.write('cp reco2.root $OUTFILE_RECO \n')
+                    else:
+                        script.write('cp reco.root $OUTFILE_RECO \n')
+
                     script.write('ifdh cp -D $OUTFILE_RECO $OUTDIR \n\n')
 
                     script.write('IFDH_RESULT=$? \n')

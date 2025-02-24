@@ -4,5 +4,8 @@
         "version": "v2_20_00",
         "qualifier": "e26:prof"
     },
+    "run_sim": true,
+    "run_reco": true,
+    "run_pid": true,
     "copy_reco": false
 }

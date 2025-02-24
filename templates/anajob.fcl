@@ -1,0 +1,20 @@
+#include "anajobfcl_subfix.fcl"
+
+physics.analyzers.anatree.WriteMCinfo:            true
+physics.analyzers.anatree.WriteMCPTrajectory:     false
+physics.analyzers.anatree.WriteMCPTrajMomenta:    false
+physics.analyzers.anatree.WriteMCCaloInfo:        false
+
+physics.analyzers.anatree.WriteHits:              false
+physics.analyzers.anatree.WriteTPCClusters:       reco
+physics.analyzers.anatree.WriteTracks:            reco
+physics.analyzers.anatree.WriteTrackTrajectories: false
+physics.analyzers.anatree.WriteVertices:          reco
+physics.analyzers.anatree.WriteVees:              reco
+
+physics.analyzers.anatree.WriteMuID:              true
+physics.analyzers.anatree.WriteCaloDigits:        false
+physics.analyzers.anatree.WriteCaloHits:          reco
+physics.analyzers.anatree.WriteCaloClusters:      reco
+physics.analyzers.anatree.WriteMatchedTracks:     reco
+physics.analyzers.anatree.WriteRecoParticles:     reco2
